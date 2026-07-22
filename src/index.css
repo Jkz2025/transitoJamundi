@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: system-ui, sans-serif;
+  --color-gold: #F2B705;
+  --color-gold-600: #D49E00;
+  --color-navy-50: #F0F4F8;
+  --color-navy-100: #D9E2EC;
+  --color-navy-400: #829AB1;
+  --color-navy-600: #486581;
+  --color-navy-700: #334E68;
+  --color-navy-900: #102A43;
+  --color-teal: #00D4AA;
+  --shadow-card: 0 1px 3px 0 rgba(16, 42, 67, 0.1), 0 1px 2px 0 rgba(16, 42, 67, 0.06);
+}
+
+:focus-visible {
+  outline: 3px solid #F2B705;
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background-color: var(--color-gold);
+  color: var(--color-navy-900);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-gold-600);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-navy-700);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--color-navy-700);
+  border: 1px solid var(--color-navy-100);
+  font-family: var(--font-display);
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-navy-50);
+}
+
+.btn-ghost {
+  color: var(--color-navy-600);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.5em;
+}
+
+.btn-ghost:hover {
+  color: var(--color-navy-900);
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-navy-50);
+}
+
+.input-field {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-navy-100);
+  background-color: white;
+  padding: 0.75rem 1rem;
+  color: var(--color-navy-900);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.input-field::placeholder {
+  color: rgba(51, 78, 104, 0.6);
+}
+
+.input-field:focus {
+  border-color: var(--color-teal);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
