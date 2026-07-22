@@ -38,6 +38,15 @@ export function AuthProvider({ children }) {
     return supabase.auth.signInWithPassword({ email, password })
   }
 
+  async function signInWithGoogle() {
+    return supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/mi-cuenta`
+      }
+    })
+  }
+
   async function signUp({ email, password, cedula, nombre }) {
     return supabase.auth.signUp({
       email,
@@ -52,7 +61,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithPassword, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signInWithPassword, signInWithGoogle, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )
