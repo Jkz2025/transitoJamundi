@@ -38,15 +38,17 @@ export function AuthProvider({ children }) {
     return supabase.auth.signInWithPassword({ email, password })
   }
 
-  async function signInWithGoogle() {
-    return supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/mi-cuenta`
-      }
-    })
-  }
-
+const signInWithGoogle = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/auth/callback', 
+      // Esto dará 'https://tusitio.netlify.app/auth/callback'
+      skipBrowserRedirect: false,
+    },
+  });
+  if (error) throw error;
+};
   async function signUp({ email, password, cedula, nombre }) {
     return supabase.auth.signUp({
       email,
