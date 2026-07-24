@@ -3,7 +3,8 @@ import { AuthProvider } from './lib/AuthContext.jsx'
 import Header from './components/Header.jsx'
 import Consulta from './pages/Consulta.jsx'
 import Login from './pages/Login.jsx'
-import MiCuenta from './pages/MiCuenta.jsx'
+import MiCuenta from './components/pagesReconocimientoFacial/MiCuenta.jsx'
+import Ajustes from './components/pagesReconocimientoFacial/Ajustes.jsx'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
             <Route path="/" element={<Consulta />} />
             <Route path="/ingresar" element={<Login />} />
             <Route path="/mi-cuenta" element={<MiCuenta />} />
+            <Route path="/ajustes" element={<Ajustes />} />
           </Routes>
         </main>
         <footer className="border-t border-navy-100 bg-white">

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { obtenerEstadoVerificacion } from './verificationEngine.js'
 
 const AuthContext = createContext(null)
 
@@ -26,35 +27,58 @@ export function AuthProvider({ children }) {
       return
     }
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('profiles_transito')
       .select('*')
       .eq('id', authUser.id)
-      .single()
+      .maybeSingle()
 
-    setUser({ id: authUser.id, email: authUser.email, ...profile })
+    const verificacion = await obtenerEstadoVerificacion(authUser.id)
+
+    setUser({ 
+      id: authUser.id, 
+      email: authUser.email, 
+      cedula: authUser.user_metadata?.cedula || profile?.cedula,
+      nombre: authUser.user_metadata?.nombre || profile?.nombre,
+      apellidos: profile?.apellidos,
+      telefono: profile?.telefono,
+      ...profile, 
+      verificacion 
+    })
+  }
+
+  // Se llama después de subir un documento o registrar el rostro,
+  // para refrescar las banderas sin tener que recargar la sesión completa.
+  async function refreshVerificacion() {
+    if (!user) return
+    const verificacion = await obtenerEstadoVerificacion(user.id)
+    setUser((prev) => (prev ? { ...prev, verificacion } : prev))
   }
 
   async function signInWithPassword(email, password) {
-    return supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    return { data, error: null }
   }
 
-const signInWithGoogle = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + '/', 
-      // Esto dará 'https://tusitio.netlify.app/auth/callback'
-      skipBrowserRedirect: false,
-    },
-  });
-  if (error) throw error;
-};
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/',
+        skipBrowserRedirect: false,
+      },
+    })
+    if (error) throw error
+  }
+
   async function signUp({ email, password, cedula, nombre }) {
-    return supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { cedula, nombre } }
+      options: { data: { cedula, nombre } },
     })
+    if (error) throw error
+    return { data, error: null }
   }
 
   async function signOut() {
@@ -63,7 +87,17 @@ const signInWithGoogle = async () => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithPassword, signInWithGoogle, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signInWithPassword,
+        signInWithGoogle,
+        signUp,
+        signOut,
+        refreshVerificacion,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

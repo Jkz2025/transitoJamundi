@@ -18,16 +18,20 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error } =
-      modo === 'ingresar'
-        ? await signInWithPassword(email, password)
-        : await signUp({ email, password, cedula, nombre })
-    setLoading(false)
-    if (error) {
-      setError(traducirError(error.message))
-      return
+    
+    try {
+      if (modo === 'ingresar') {
+        await signInWithPassword(email, password)
+        navigate('/mi-cuenta')
+      } else {
+        await signUp({ email, password, cedula, nombre })
+        navigate('/mi-cuenta')
+      }
+    } catch (err) {
+      setError(traducirError(err.message))
+    } finally {
+      setLoading(false)
     }
-    navigate('/mi-cuenta')
   }
 
   async function handleGoogleSignIn() {

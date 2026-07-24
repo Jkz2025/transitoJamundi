@@ -1,10 +1,18 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../lib/AuthContext.jsx'
 import PlateBadge from './PlateBadge.jsx'
 import { formatoCOP } from '../lib/agreementEngine.js'
+import VerificationRequiredModal from './reconocimientoFacial/VerificationRequiredModal.jsx'
+import FacialVerifyModal from './reconocimientoFacial/FacialVerifyModal.jsx'
 
 export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAcuerdo }) {
   const { nombre, infracciones } = resultado
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [seleccionados, setSeleccionados] = useState(new Set())
+  const [modalVerificacion, setModalVerificacion] = useState(null)
+  const [modalFacial, setModalFacial] = useState(null)
 
   if (!nombre) {
     return (
@@ -38,6 +46,38 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
   const infraccionesSeleccionadas = infracciones.filter(i => seleccionados.has(i.infraction_id))
   const totalSeleccionado = infraccionesSeleccionadas.reduce((sum, i) => sum + i.valor_actual, 0)
   const placas = [...new Set(infracciones.map((i) => i.placa).filter(Boolean))]
+
+  const puedePagar = user?.verificacion?.puedePagar
+  const faltaDocumentos = !user?.verificacion?.documentos?.completo
+  const faltaFacial = !user?.verificacion?.facial?.completo
+
+  function verificarAntesDePagar(callback, monto, infracciones) {
+    if (!user) {
+      navigate('/ingresar')
+      return
+    }
+
+    if (!puedePagar) {
+      setModalVerificacion(user.verificacion)
+      return
+    }
+
+    // Si tiene documentos pero falta facial, verificar rostro
+    if (!faltaDocumentos && faltaFacial) {
+      setModalFacial({ callback, monto, infracciones })
+      return
+    }
+
+    // Todo completo, proceder con el pago
+    callback(monto, infracciones)
+  }
+
+  function handleFacialVerified() {
+    setModalFacial(null)
+    if (modalFacial?.callback) {
+      modalFacial.callback(modalFacial.monto, modalFacial.infracciones)
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -89,7 +129,7 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
                 {formatoCOP(inf.valor_actual)}
               </p>
               <button
-                onClick={() => onPagarTotal(inf.valor_actual, [inf])}
+                onClick={() => verificarAntesDePagar(onPagarTotal, inf.valor_actual, [inf])}
                 className="text-xs text-teal-600 hover:text-teal-700 font-medium mt-1"
               >
                 Pagar este comparendo
@@ -108,7 +148,7 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
           </button>
           <button 
             type="button" 
-            onClick={() => onPagarTotal(totalSeleccionado, infraccionesSeleccionadas)}
+            onClick={() => verificarAntesDePagar(onPagarTotal, totalSeleccionado, infraccionesSeleccionadas)}
             disabled={infraccionesSeleccionadas.length === 0}
             className="btn-primary flex flex-col items-start gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -119,7 +159,7 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
           </button>
           <button 
             type="button"
-            onClick={() => onAcuerdo(totalSeleccionado, infraccionesSeleccionadas)}
+            onClick={() => verificarAntesDePagar(onAcuerdo, totalSeleccionado, infraccionesSeleccionadas)}
             disabled={infraccionesSeleccionadas.length === 0}
                        className="btn-primary flex flex-col items-start gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
 
@@ -132,6 +172,20 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
           </button>
         </form>
       </div>
+
+      {modalVerificacion && (
+        <VerificationRequiredModal
+          estado={modalVerificacion}
+          onClose={() => setModalVerificacion(null)}
+        />
+      )}
+
+      {modalFacial && (
+        <FacialVerifyModal
+          onClose={() => setModalFacial(null)}
+          onVerified={handleFacialVerified}
+        />
+      )}
     </div>
   )
 }
