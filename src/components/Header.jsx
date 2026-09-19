@@ -19,7 +19,7 @@ export default function Header() {
             TJ
           </div>
           <div className="leading-tight">
-            <p className="font-display font-semibold text-lg text-navy-900">Secretaría de movilidad </p>
+            <p className="font-display font-semibold text-lg text-navy-900">Secretaría de movilidad y Seguridad Vial</p>
             <p className="text-xs text-navy-400">Consulta y pago de comparendos</p>
           </div>
         </Link>
