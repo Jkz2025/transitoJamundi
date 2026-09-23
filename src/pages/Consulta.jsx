@@ -17,21 +17,33 @@ export default function Consulta() {
   const [modalAcuerdoExito, setModalAcuerdoExito] = useState(null) // acuerdoInfo | null
   const [mensaje, setMensaje] = useState(null)
 
-  async function handleSearch({ modo, valor }) {
+  async function handleSearch({ modo, valor, resultado }) {
     setLoading(true)
     setMensaje(null)
     setResultado(null)
 
-    // --- PRODUCCIÓN: reemplazar por la función RPC de Supabase ---
-    // const { data, error } = await supabase.rpc('buscar_deuda', {
-    //   p_cedula: modo === 'cedula' ? valor : null,
-    //   p_placa: modo === 'placa' ? valor : null,
-    // })
-    // Luego resolver el nombre del ciudadano con una consulta a `citizens`.
+    // --- INTEGRACIÓN CON WORKER DE CLOUDFLARE (SIMIT) ---
+    // El SearchForm ya hace la llamada al Worker y devuelve los datos aquí
+    if (resultado) {
+      if (resultado.error) {
+        setMensaje(resultado.msg || 'Error en la consulta. Por favor intenta nuevamente.')
+        setLoading(false)
+        return
+      }
 
-    await new Promise((r) => setTimeout(r, 500)) // simula latencia de red
-    const data = buscarDeudaMock(modo === 'cedula' ? { cedula: valor } : { placa: valor })
-    setResultado({ nombre: data.nombre, infracciones: data.infracciones })
+      // Mapear la respuesta del Worker al formato esperado por el componente
+      // El Worker devuelve la respuesta del SIMIT directamente
+      setResultado({
+        nombre: resultado.ciudadano || resultado.nombre || 'No disponible',
+        infracciones: resultado.infracciones || resultado.obligaciones || []
+      })
+    } else {
+      // Fallback al mock si no hay resultado (no debería pasar con la integración)
+      await new Promise((r) => setTimeout(r, 500))
+      const data = buscarDeudaMock(modo === 'cedula' ? { cedula: valor } : { placa: valor })
+      setResultado({ nombre: data.nombre, infracciones: data.infracciones })
+    }
+
     setLoading(false)
   }
 

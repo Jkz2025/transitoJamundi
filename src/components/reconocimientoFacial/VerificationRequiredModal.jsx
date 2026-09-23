@@ -1,10 +1,27 @@
 import { useNavigate } from 'react-router-dom'
 
-export default function VerificationRequiredModal({ estado, onClose }) {
+export default function VerificationRequiredModal({ estado, onClose, onCompletarMock }) {
   const navigate = useNavigate()
 
   const faltaDocumentos = !estado?.documentos?.completo
   const faltaFacial = !estado?.facial?.completo
+
+  // ============================================================
+  // VERSIÓN PRODUCCIÓN: navega a /ajustes para completar verificación real.
+  // ============================================================
+  // const handleCompletar = () => navigate('/ajustes')
+
+  // ============================================================
+  // VERSIÓN MAQUETA: dispara el siguiente modal (facial) directamente,
+  // sin navegar ni depender de sesión. Solo para capturas de pantalla.
+  // ============================================================
+  const handleCompletar = () => {
+    if (onCompletarMock) {
+      onCompletarMock()
+    } else {
+      navigate('/ajustes')
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-navy-900/60 flex items-center justify-center p-4">
@@ -27,7 +44,7 @@ export default function VerificationRequiredModal({ estado, onClose }) {
           <button type="button" onClick={onClose} className="btn-ghost flex-1">
             Cancelar
           </button>
-          <button type="button" onClick={() => navigate('/ajustes')} className="btn-primary flex-1">
+          <button type="button" onClick={handleCompletar} className="btn-primary flex-1">
             Completar ahora
           </button>
         </div>

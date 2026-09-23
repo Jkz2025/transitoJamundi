@@ -42,6 +42,13 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
       setSeleccionados(new Set(infracciones.map(i => i.infraction_id)))
     }
   }
+  
+  //SIMULACION INICIO SESION
+  const [verificacionSimulada] = useState({
+  puedePagar: false,
+  documentos: { completo: false },
+  facial: { completo: false },
+})
 
   const infraccionesSeleccionadas = infracciones.filter(i => seleccionados.has(i.infraction_id))
   const totalSeleccionado = infraccionesSeleccionadas.reduce((sum, i) => sum + i.valor_actual, 0)
@@ -51,25 +58,38 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
   const faltaDocumentos = !user?.verificacion?.documentos?.completo
   const faltaFacial = !user?.verificacion?.facial?.completo
 
+  // ============================================================
+  // VERSIÓN PRODUCCIÓN (con sesión real, documentos y facial)
+  // Descomentar y activar cuando se pase a producción real.
+  // ============================================================
+  // function verificarAntesDePagar(callback, monto, infracciones) {
+  //   if (!user) {
+  //     navigate('/ingresar')
+  //     return
+  //   }
+  //
+  //   if (!puedePagar) {
+  //     setModalVerificacion(user.verificacion)
+  //     return
+  //   }
+  //
+  //   if (!faltaDocumentos && faltaFacial) {
+  //     setModalFacial({ callback, monto, infracciones })
+  //     return
+  //   }
+  //
+  //   callback(monto, infracciones)
+  // }
+
+  // ============================================================
+  // VERSIÓN MAQUETA VISUAL — SESIÓN SIMULADA (ACTIVA)
+  // No depende de `user` del AuthContext, no redirige a /ingresar.
+  // Abre el modal de documentos con datos ficticios,
+  // solo para tomar capturas de pantalla.
+  // ⚠️ No usar en producción.
+  // ============================================================
   function verificarAntesDePagar(callback, monto, infracciones) {
-    if (!user) {
-      navigate('/ingresar')
-      return
-    }
-
-    if (!puedePagar) {
-      setModalVerificacion(user.verificacion)
-      return
-    }
-
-    // Si tiene documentos pero falta facial, verificar rostro
-    if (!faltaDocumentos && faltaFacial) {
-      setModalFacial({ callback, monto, infracciones })
-      return
-    }
-
-    // Todo completo, proceder con el pago
-    callback(monto, infracciones)
+    setModalVerificacion(verificacionSimulada)
   }
 
   function handleFacialVerified() {
@@ -152,7 +172,7 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
             disabled={infraccionesSeleccionadas.length === 0}
             className="btn-primary flex flex-col items-start gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>Pagar seleccionados</span>
+            <span>Pagar de contado</span>
             <span className="text-xs font-normal text-navy-900/70 text-left">
               {infraccionesSeleccionadas.length > 0 ? formatoCOP(totalSeleccionado) : 'Selecciona comparendos'}
             </span>
@@ -174,10 +194,14 @@ export default function DebtResults({ resultado, onDescargar, onPagarTotal, onAc
       </div>
 
       {modalVerificacion && (
-        <VerificationRequiredModal
-          estado={modalVerificacion}
-          onClose={() => setModalVerificacion(null)}
-        />
+      <VerificationRequiredModal
+    estado={modalVerificacion}
+    onClose={() => setModalVerificacion(null)}
+    onCompletarMock={() => {
+      setModalVerificacion(null)
+      setModalFacial({ callback: () => {}, monto: 0, infracciones: [] })
+    }}
+  />
       )}
 
       {modalFacial && (

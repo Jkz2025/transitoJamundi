@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  server: {
+    proxy: {
+      '/api/consulta': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 })

@@ -5,14 +5,20 @@ const MODOS = [
   { value: 'placa', label: 'Placa del vehículo' }
 ]
 
+// 👇 Temporalmente usar URL directa del Worker local
+// El proxy de Vite no está funcionando correctamente
+const API_URL = 'http://127.0.0.1:8787/consulta'
+
 export default function SearchForm({ onSearch, loading }) {
   const [modo, setModo] = useState('cedula')
   const [valor, setValor] = useState('')
   const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const limpio = valor.trim().toUpperCase()
+
     if (modo === 'cedula' && !/^\d{5,12}$/.test(limpio)) {
       setError('Ingresa un número de cédula válido (solo dígitos).')
       return
@@ -21,9 +27,34 @@ export default function SearchForm({ onSearch, loading }) {
       setError('Ingresa una placa válida, ej: ABC12D.')
       return
     }
+
     setError('')
-    onSearch({ modo, valor: limpio })
+    setEnviando(true)
+
+    try {
+      const respuesta = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filtro: limpio })
+      })
+
+      const texto = await respuesta.text()
+
+      if (!respuesta.ok) {
+        throw new Error(`HTTP ${respuesta.status}: ${texto || respuesta.statusText}`)
+      }
+
+      const data = texto ? JSON.parse(texto) : {}
+      onSearch({ modo, valor: limpio, resultado: data })
+    } catch (error) {
+      console.error('Error en la consulta:', error)
+      setError(`Error: ${error.message}`)
+    } finally {
+      setEnviando(false)
+    }
   }
+
+  const cargando = loading || enviando
 
   return (
     <form onSubmit={handleSubmit} className="card p-5 sm:p-6">
@@ -58,8 +89,8 @@ export default function SearchForm({ onSearch, loading }) {
           aria-invalid={!!error}
           aria-describedby={error ? 'valor-error' : undefined}
         />
-        <button type="submit" disabled={loading || !valor} className="btn-primary sm:w-48">
-          {loading ? 'Consultando…' : 'Buscar'}
+        <button type="submit" disabled={cargando || !valor} className="btn-primary sm:w-48">
+          {cargando ? 'Consultando…' : 'Buscar'}
         </button>
       </div>
       {error && <p id="valor-error" className="text-sm text-red-600 mt-2">{error}</p>}
