@@ -9,7 +9,7 @@ export default function Header() {
     <header className="border-b border-navy-100 bg-white">
       <div className="bg-navy-900 text-navy-50 text-xs">
         <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between">
-          <span>Alcaldía de Jamundí · Valle del Cauca</span>
+          <span>Jamundí · Valle del Cauca</span>
           <span className="hidden sm:inline">Portal oficial de trámites de tránsito</span>
         </div>
       </div>
@@ -19,7 +19,7 @@ export default function Header() {
             TJ
           </div>
           <div className="leading-tight">
-            <p className="font-display font-semibold text-lg text-navy-900">Tránsito Jamundí</p>
+            <p className="font-display font-semibold text-lg text-navy-900">Secretaría de movilidad y Seguridad Vial</p>
             <p className="text-xs text-navy-400">Consulta y pago de comparendos</p>
           </div>
         </Link>
