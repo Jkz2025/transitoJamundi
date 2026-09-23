@@ -5,9 +5,10 @@ const MODOS = [
   { value: 'placa', label: 'Placa del vehículo' }
 ]
 
-// 👇 Temporalmente usar URL directa del Worker local
-// El proxy de Vite no está funcionando correctamente
-const API_URL = 'http://127.0.0.1:8787/consulta'
+// 👇 En desarrollo usa Worker local, en producción usa Worker desplegado
+const API_URL = import.meta.env.DEV
+  ? 'http://127.0.0.1:8787/consulta'
+  : 'https://worker-prueba.moiplay300.workers.dev/consulta'
 
 export default function SearchForm({ onSearch, loading }) {
   const [modo, setModo] = useState('cedula')
