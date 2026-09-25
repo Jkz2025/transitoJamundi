@@ -34,6 +34,8 @@ export default function Consulta() {
     setMensaje(null)
     setResultado(null)
 
+    console.log("Datos recibidos del API:", resultado);
+
     // --- INTEGRACIÓN CON WORKER DE CLOUDFLARE (SIMIT) ---
     // El SearchForm ya hace la llamada al Worker y devuelve los datos aquí
     if (resultado) {
@@ -43,11 +45,33 @@ export default function Consulta() {
         return
       }
 
-      // Mapear la respuesta del Worker al formato esperado por el componente
-      // El Worker devuelve la respuesta del SIMIT directamente
+      // Mapear la respuesta del SIMIT al formato esperado por el componente
+      // El SIMIT devuelve datos en formato respuestaApi.multas
+      let datosSimit = resultado.respuestaApi || resultado;
+
+      // Extraer nombre del ciudadano de la estructura del SIMIT
+      const ciudadano = datosSimit.multas?.[0]?.infractor?.nombre ||
+                       datosSimit.multas?.[0]?.infractor?.primerNombre + ' ' +
+                       datosSimit.multas?.[0]?.infractor?.primerApellido ||
+                       resultado.ciudadano ||
+                       resultado.nombre ||
+                       'No disponible';
+
+      // Transformar las multas al formato de infracciones que espera el componente
+      const infracciones = (datosSimit.multas || []).map((multa, index) => ({
+        infraction_id: multa.numeroComparendo || multa.consecutivoComparendo || `INF-${index}`,
+        descripcion: multa.infracciones?.[0]?.descripcionInfracc || multa.infracciones?.[0]?.descripcion || 'Comparendo',
+        numero_comparendo: multa.numeroComparendo || multa.numeroResolucion || 'N/A',
+        fecha_infraccion: multa.fechaComparendo || multa.fechaResolucion || 'N/A',
+        placa: multa.placa || 'N/A',
+        valor_actual: multa.valorPagar || multa.valor || 0
+      }));
+
+      console.log("Datos procesados:", { ciudadano, infracciones });
+
       setResultado({
-        nombre: resultado.ciudadano || resultado.nombre || 'No disponible',
-        infracciones: resultado.infracciones || resultado.obligaciones || []
+        nombre: ciudadano,
+        infracciones: infracciones
       })
     } else {
       // Fallback al mock si no hay resultado (no debería pasar con la integración)

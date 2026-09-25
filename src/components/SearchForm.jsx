@@ -8,7 +8,7 @@ const MODOS = [
 // 👇 En desarrollo usa Worker local, en producción usa Render
 const API_URL = import.meta.env.DEV
   ? 'http://127.0.0.1:8787/consulta'
-  : 'https://worker-prueba.moiplay300.workers.dev/consulta'
+  : 'https://simit-render.onrender.com/consulta'
 
 export default function SearchForm({ onSearch, loading }) {
   const [modo, setModo] = useState('cedula')
