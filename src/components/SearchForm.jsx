@@ -5,7 +5,7 @@ const MODOS = [
   { value: 'placa', label: 'Placa del vehículo' }
 ]
 
-// 👇 En desarrollo usa Worker local, en producción usa Worker desplegado
+// 👇 En desarrollo usa Worker local, en producción usa Render
 const API_URL = import.meta.env.DEV
   ? 'http://127.0.0.1:8787/consulta'
   : 'https://worker-prueba.moiplay300.workers.dev/consulta'
@@ -39,13 +39,14 @@ export default function SearchForm({ onSearch, loading }) {
         body: JSON.stringify({ filtro: limpio })
       })
 
-      const texto = await respuesta.text()
+      const json = await respuesta.json();
+      console.log("RESPUESTA:", json);
 
       if (!respuesta.ok) {
-        throw new Error(`HTTP ${respuesta.status}: ${texto || respuesta.statusText}`)
+        throw new Error(`HTTP ${respuesta.status}: ${json || respuesta.statusText}`)
       }
-
-      const data = texto ? JSON.parse(texto) : {}
+    
+      const data = json;
       onSearch({ modo, valor: limpio, resultado: data })
     } catch (error) {
       console.error('Error en la consulta:', error)
